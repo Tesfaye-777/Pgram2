@@ -5,6 +5,7 @@ dist/
 build/
 
 *.log
+dev-server.*
 bun.lock
 .env
 .env.*
