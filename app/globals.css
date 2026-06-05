@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(141, 230, 200, 0.12), transparent 24rem),
+    radial-gradient(circle at 86% 0%, rgba(216, 179, 90, 0.16), transparent 22rem),
+    linear-gradient(135deg, #070603 0%, #171008 48%, #24160e 100%);
+  color: #fff7df;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.xian-card {
+  border: 1px solid rgba(216, 179, 90, 0.34);
+  background:
+    linear-gradient(145deg, rgba(35, 25, 14, 0.94), rgba(20, 15, 9, 0.84)),
+    radial-gradient(circle at top left, rgba(242, 228, 189, 0.09), transparent 18rem);
+  box-shadow: 0 0 0 1px rgba(255, 247, 223, 0.04), 0 22px 80px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(16px);
+}
+
+.scroll-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent, rgba(216, 179, 90, 0.08), transparent),
+    linear-gradient(180deg, rgba(255, 247, 223, 0.04), transparent 24%, transparent 76%, rgba(255, 247, 223, 0.04));
+}
+
+.ink-wash {
+  position: relative;
+}
+
+.ink-wash::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(255, 247, 223, 0.22), transparent 18rem),
+    radial-gradient(ellipse at 72% 26%, rgba(0, 0, 0, 0.35), transparent 20rem),
+    radial-gradient(ellipse at 48% 92%, rgba(141, 230, 200, 0.12), transparent 22rem);
+}
+
+.trait-card {
+  position: relative;
+  isolation: isolate;
+}
+
+.trait-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.trait-card:hover::before {
+  opacity: 1;
+}
+
+.trait-epic {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(168, 85, 247, 0.32), transparent 12rem),
+    linear-gradient(145deg, rgba(64, 34, 92, 0.5), rgba(22, 13, 31, 0.86));
+  box-shadow: 0 0 0 1px rgba(216, 180, 254, 0.18), 0 0 26px rgba(168, 85, 247, 0.22);
+}
+
+.trait-epic::before {
+  background: linear-gradient(120deg, transparent 0%, rgba(216, 180, 254, 0.2) 46%, transparent 78%);
+}
+
+.trait-legendary {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 218, 118, 0.42), transparent 13rem),
+    linear-gradient(145deg, rgba(93, 62, 15, 0.58), rgba(28, 17, 5, 0.9));
+  box-shadow: 0 0 0 1px rgba(255, 221, 128, 0.32), 0 0 34px rgba(255, 205, 73, 0.36);
+  animation: legendary-pulse 2.8s ease-in-out infinite;
+}
+
+.trait-legendary::before {
+  background: linear-gradient(110deg, transparent 8%, rgba(255, 247, 198, 0.34) 45%, transparent 72%);
+  animation: rarity-sheen 2.6s linear infinite;
+}
+
+.trait-mythic {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 77, 77, 0.42), transparent 13rem),
+    radial-gradient(circle at 82% 20%, rgba(255, 209, 102, 0.2), transparent 10rem),
+    linear-gradient(145deg, rgba(91, 17, 17, 0.7), rgba(27, 8, 7, 0.92));
+  box-shadow: 0 0 0 1px rgba(255, 128, 128, 0.34), 0 0 42px rgba(201, 75, 58, 0.44);
+  animation: mythic-breathe 2.4s ease-in-out infinite;
+}
+
+.trait-mythic::before {
+  background: linear-gradient(115deg, transparent 4%, rgba(255, 227, 169, 0.38) 42%, rgba(255, 80, 80, 0.22) 58%, transparent 78%);
+  animation: rarity-sheen 2.2s linear infinite;
+}
+
+.rarity-stamp {
+  box-shadow: inset 0 0 12px rgba(255, 247, 223, 0.12), 0 0 18px rgba(216, 179, 90, 0.18);
+}
+
+.birth-info-fade {
+  animation: birth-info-fade 180ms ease-out;
+}
+
+.birth-info-fade-out {
+  animation: birth-info-fade-out 180ms ease-in forwards;
+}
+
+@keyframes rarity-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes legendary-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(255, 221, 128, 0.28), 0 0 28px rgba(255, 205, 73, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(255, 236, 166, 0.52), 0 0 42px rgba(255, 205, 73, 0.46);
+  }
+}
+
+@keyframes mythic-breathe {
+  0%,
+  100% {
+    filter: saturate(1);
+  }
+  50% {
+    filter: saturate(1.3);
+  }
+}
+
+@keyframes birth-info-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes birth-info-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

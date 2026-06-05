@@ -1,0 +1,12 @@
+.next/
+node_modules/
+out/
+dist/
+build/
+
+*.log
+.env
+.env.*
+!.env.example
+
+开发日记2/
