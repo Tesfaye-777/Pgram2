@@ -5,6 +5,8 @@ dist/
 build/
 
 *.log
+*.tsbuildinfo
+~$*.xlsx
 dev-server.*
 bun.lock
 .env

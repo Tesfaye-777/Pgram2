@@ -1,6 +1,7 @@
 import type { LifeScenario } from "@/types";
+import { optimizedOptionCopy } from "@/lib/copyOptimizations";
 
-export const lifeScenarios: LifeScenario[] = [
+const baseLifeScenarios: LifeScenario[] = [
   {
     id: "childhood-awakening",
     order: 1,
@@ -262,3 +263,17 @@ export const lifeScenarios: LifeScenario[] = [
     ]
   }
 ];
+
+export const lifeScenarios: LifeScenario[] = baseLifeScenarios.map((scenario) => ({
+  ...scenario,
+  choices: scenario.choices.map((choice) => {
+    const optimized = optimizedOptionCopy[`${scenario.id}:${choice.id}`] ?? optimizedOptionCopy[choice.id];
+    return optimized
+      ? {
+          ...choice,
+          label: optimized.label,
+          description: optimized.description
+        }
+      : choice;
+  })
+}));

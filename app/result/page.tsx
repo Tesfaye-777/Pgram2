@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Disclaimer } from "@/components/Disclaimer";
 import { StatRadarChart } from "@/components/StatRadarChart";
-import { TraitCard } from "@/components/TraitCard";
+import { TraitCard, TraitDetailPanel } from "@/components/TraitCard";
 import { birthHourOptions } from "@/lib/constants";
 import { createSimulation } from "@/lib/simulationEngine";
 import { loadDestiny, saveSimulation } from "@/lib/storage";
@@ -14,9 +14,12 @@ export default function ResultPage() {
   const [profile, setProfile] = useState<DestinyProfile | null>(null);
   const [showBirthInfo, setShowBirthInfo] = useState(false);
   const [isBirthInfoClosing, setIsBirthInfoClosing] = useState(false);
+  const [selectedTraitId, setSelectedTraitId] = useState<string | null>(null);
 
   useEffect(() => {
-    setProfile(loadDestiny());
+    const destiny = loadDestiny();
+    setProfile(destiny);
+    setSelectedTraitId(destiny?.traits[0]?.id ?? null);
   }, []);
 
   function startSimulation() {
@@ -52,6 +55,8 @@ export default function ResultPage() {
     );
   }
 
+  const selectedTrait = profile.traits.find((trait) => trait.id === selectedTraitId) ?? profile.traits[0];
+
   return (
     <main className="ink-wash min-h-screen bg-xian-pattern bg-[length:26px_26px] px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -59,12 +64,12 @@ export default function ResultPage() {
         <section className="xian-card scroll-glow rounded-lg p-5 md:p-7">
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
-              <p className="text-sm text-cinnabar">命册初卷</p>
-              <h1 className="mt-2 text-3xl font-black text-yellow-50 md:text-5xl">
-                {profile.title}
+              <p className="text-sm font-black tracking-[0.32em] text-cinnabar">命册初卷</p>
+              <h1 className="mt-2 font-serif text-3xl font-black tracking-[0.08em] text-yellow-50 drop-shadow-[0_0_14px_rgba(216,179,90,0.22)] md:text-5xl">
+                {profile.user.name}入世命局
               </h1>
               <p className="mt-3 text-parchment/72">
-                {profile.user.name} · {profile.archetype} · Seed #{profile.seed}
+                主签「{profile.traits[0]?.name}」，五维已定，入世之路由你亲手落子。
               </p>
             </div>
             <Link
@@ -88,17 +93,35 @@ export default function ResultPage() {
             ) : null}
           </div>
           <p className="mt-6 rounded-md border border-gold/18 bg-ink/36 p-4 leading-7 text-parchment/88">
-            {profile.initialEvaluation}
+            {formatInitialEvaluation(profile)}
           </p>
         </section>
-        <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
-          <section className="grid gap-4 md:grid-cols-2">
-            {profile.traits.map((trait) => (
-              <TraitCard key={trait.id} trait={trait} />
-            ))}
-          </section>
-          <StatRadarChart stats={profile.baseStats} />
-        </div>
+        <section className="xian-card scroll-glow rounded-lg p-5 md:p-6">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-black tracking-[0.32em] text-cinnabar">命盘总览</p>
+              <h2 className="mt-2 font-serif text-3xl font-black tracking-[0.08em] text-yellow-50 drop-shadow-[0_0_14px_rgba(216,179,90,0.22)]">
+                灵签与五维
+              </h2>
+            </div>
+          </div>
+          <div className="grid items-stretch gap-6 lg:grid-cols-[380px_1fr]">
+            <StatRadarChart stats={profile.baseStats} />
+            <div className="grid h-full grid-rows-6 items-stretch gap-4 md:grid-cols-2 md:grid-rows-3">
+              {profile.traits.map((trait) => (
+                <TraitCard
+                  key={trait.id}
+                  trait={trait}
+                  selected={trait.id === selectedTrait.id}
+                  onSelect={(nextTrait) => setSelectedTraitId(nextTrait.id)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="mt-5">
+            <TraitDetailPanel trait={selectedTrait} />
+          </div>
+        </section>
       </div>
     </main>
   );
@@ -108,20 +131,21 @@ function BirthInfoInline({ profile, closing }: { profile: DestinyProfile; closin
   const birthHour = birthHourOptions.find((option) => option.value === profile.user.birthTime);
   const items = [
     { label: "姓名", value: profile.user.name },
-    { label: "出生日期", value: profile.user.birthDate },
+    { label: "出生日期", value: formatBirthDate(profile.user.birthDate) },
     {
       label: "出生时辰",
       value: birthHour ? `${birthHour.label}（${birthHour.range}）` : profile.user.birthTime
     },
-    { label: "性别", value: genderLabels[profile.user.gender] }
+    { label: "性别", value: genderLabels[profile.user.gender] },
+    { label: "命册编号", value: `#${profile.seed}` }
   ];
 
   return (
-    <div className={`${closing ? "birth-info-fade-out" : "birth-info-fade"} flex flex-wrap gap-2`}>
+    <div className={`${closing ? "birth-info-fade-out" : "birth-info-fade"} flex max-w-full flex-nowrap gap-2 overflow-x-auto pb-1`}>
       {items.map((item) => (
         <span
           key={item.label}
-          className="rounded-full border border-gold/20 bg-parchment/7 px-3 py-1.5 text-sm text-parchment/88"
+          className="shrink-0 rounded-full border border-gold/20 bg-parchment/7 px-3 py-1.5 text-sm text-parchment/88"
         >
           <span className="text-parchment/48">{item.label}：</span>
           <span className="font-semibold text-parchment">{item.value}</span>
@@ -136,4 +160,43 @@ const genderLabels: Record<Gender, string> = {
   female: "女性",
   male: "男性",
   other: "其他"
+};
+
+function formatBirthDate(value: string) {
+  const [calendar, rawDate] = value.includes(":") ? value.split(":") : ["solar", value];
+  const label = calendar === "lunar" ? "农历" : "新历";
+  const [year, month, day] = rawDate.split("-");
+
+  if (!year || !month || !day) {
+    return value.replace("solar:", "新历 ").replace("lunar:", "农历 ");
+  }
+
+  return `${label} ${Number(year)}年${Number(month)}月${Number(day)}日`;
+}
+
+function formatInitialEvaluation(profile: DestinyProfile) {
+  if (!profile.initialEvaluation.includes("初始命盘由")) {
+    return profile.initialEvaluation;
+  }
+
+  const entries = Object.entries(profile.baseStats).sort((a, b) => b[1] - a[1]) as Array<[keyof DestinyProfile["baseStats"], number]>;
+  const [topKey, topValue] = entries[0];
+  const [lowKey, lowValue] = entries[entries.length - 1];
+  const strongest = profile.traits[0];
+  const polarity =
+    strongest.polarity === "ominous"
+      ? "主签带劫，行事宜先避锋芒，再求进取。"
+      : strongest.polarity === "mixed"
+        ? "主签半吉半劫，成事快，代价也来得快。"
+        : "主签偏吉，遇事多有可借之势。";
+
+  return `${profile.user.name}此盘以「${strongest.name}」为主签，五维中${statReadingNames[topKey]}最旺，得 ${topValue} 分；${statReadingNames[lowKey]}最弱，为 ${lowValue} 分。${polarity}开局宜重视${statReadingNames[topKey]}所指之路，少在${statReadingNames[lowKey]}不足处硬碰。`;
+}
+
+const statReadingNames: Record<keyof DestinyProfile["baseStats"], string> = {
+  luck: "福缘",
+  wealth: "财势",
+  mind: "心性",
+  courage: "魄力",
+  insight: "悟性"
 };

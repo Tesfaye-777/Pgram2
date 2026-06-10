@@ -9,19 +9,19 @@ type Props = {
 const keys = ["luck", "wealth", "mind", "courage", "insight"] as const;
 const center = 110;
 const radius = 78;
+const labelRadius = radius + 18;
 
 export function StatRadarChart({ stats, previousStats }: Props) {
   const points = buildPoints(stats);
   const previousPoints = previousStats ? buildPoints(previousStats) : null;
 
   return (
-    <div className="xian-card self-start rounded-lg p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-jade">五维灵盘</h2>
-        <span className="text-xs text-parchment/60">0-100</span>
+    <div className="xian-card h-full self-start rounded-lg p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-serif text-3xl font-black tracking-[0.1em] text-jade drop-shadow-[0_0_10px_rgba(141,230,200,.28)]">五维灵盘</h2>
       </div>
-      <div className="grid gap-3 sm:grid-cols-[150px_1fr] sm:items-center lg:grid-cols-1">
-        <svg viewBox="0 0 220 220" className="mx-auto h-40 w-40 overflow-visible lg:h-44 lg:w-44">
+      <div className="grid gap-5 sm:grid-cols-[190px_1fr] sm:items-center lg:grid-cols-1">
+        <svg viewBox="0 0 220 220" className="mx-auto h-48 w-48 overflow-visible lg:h-52 lg:w-52">
           {[0.25, 0.5, 0.75, 1].map((scale) => (
             <polygon
               key={scale}
@@ -35,8 +35,8 @@ export function StatRadarChart({ stats, previousStats }: Props) {
             const angle = getAngle(index);
             const x = center + Math.cos(angle) * radius;
             const y = center + Math.sin(angle) * radius;
-            const labelX = center + Math.cos(angle) * (radius + 24);
-            const labelY = center + Math.sin(angle) * (radius + 24);
+            const labelX = center + Math.cos(angle) * labelRadius;
+            const labelY = center + Math.sin(angle) * labelRadius + (key === "luck" ? 6 : 0);
             return (
               <g key={key}>
                 <line x1={center} y1={center} x2={x} y2={y} stroke="rgba(242,228,189,.16)" />
@@ -45,7 +45,7 @@ export function StatRadarChart({ stats, previousStats }: Props) {
                   y={labelY}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-[#8de6c8] text-[10px]"
+                  className="fill-[#8de6c8] font-serif text-[18px] font-black tracking-[0.12em]"
                 >
                   {statLabels[key]}
                 </text>
@@ -69,16 +69,16 @@ export function StatRadarChart({ stats, previousStats }: Props) {
             filter="drop-shadow(0 0 10px rgba(141,230,200,.42))"
           />
         </svg>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {keys.map((key) => (
             <div key={key}>
-              <div className="mb-1 flex justify-between text-xs">
-                <span className="text-slate-200">{statLabels[key]}</span>
-                <span className="font-mono text-jade">{stats[key]}</span>
+              <div className="mb-1.5 flex justify-between text-base">
+                <span className="font-serif text-lg font-black tracking-[0.1em] text-parchment/90">{statLabels[key]}</span>
+                <span className="font-serif text-lg font-black text-jade">{stats[key]}</span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="h-2 overflow-hidden rounded-full bg-parchment/10 shadow-[inset_0_0_8px_rgba(0,0,0,.45)]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-jade via-gold to-cinnabar"
+                  className="h-full rounded-full bg-gradient-to-r from-jade via-[#d8d08a] to-gold shadow-[0_0_10px_rgba(141,230,200,.24)]"
                   style={{ width: `${stats[key]}%` }}
                 />
               </div>

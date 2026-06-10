@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { LifeChoice } from "@/types";
 
 type Props = {
@@ -9,31 +10,50 @@ type Props = {
 };
 
 export function ChoiceButton({ choice, unlocked, onChoose }: Props) {
+  const isHiddenRoute = choice.id.endsWith("-hidden-route");
+  const [blocked, setBlocked] = useState(false);
+
+  function handleClick() {
+    if (unlocked) {
+      onChoose();
+      return;
+    }
+
+    setBlocked(false);
+    window.setTimeout(() => setBlocked(true), 0);
+    window.setTimeout(() => setBlocked(false), 360);
+  }
+
   return (
     <button
       type="button"
-      disabled={!unlocked}
-      onClick={onChoose}
-      className={`w-full rounded-lg border p-4 text-left transition ${
+      aria-disabled={!unlocked}
+      onClick={handleClick}
+      className={`group min-h-[168px] w-full rounded-lg border p-4 text-left transition ${
         unlocked
-          ? "border-gold/30 bg-parchment/7 hover:border-jade hover:bg-jade/10 hover:shadow-jade"
-          : "cursor-not-allowed border-slate-500/20 bg-slate-800/40 opacity-55"
-      }`}
+          ? isHiddenRoute
+            ? "border-jade/55 bg-jade/10 shadow-[0_0_24px_rgba(141,230,200,.14)] hover:-translate-y-0.5 hover:border-gold hover:bg-gold/12 hover:shadow-gold"
+            : "border-gold/30 bg-parchment/7 hover:-translate-y-0.5 hover:border-jade hover:bg-jade/10 hover:shadow-jade"
+          : "cursor-not-allowed border-parchment/14 bg-ink/42 opacity-55"
+      } ${blocked ? "choice-denied-shake" : ""}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="font-semibold text-slate-50">{choice.label}</span>
-        {choice.requirement ? (
-          <span className="rounded-full border border-cinnabar/45 bg-cinnabar/14 px-2 py-0.5 text-xs text-red-100">
-            {unlocked ? "已解锁" : `需 ${choice.requirement.label}`}
+        <span className="font-serif text-xl font-black text-yellow-50">{choice.label}</span>
+        {isHiddenRoute ? (
+          <span className="rounded-full border border-jade/45 bg-jade/12 px-2 py-0.5 text-xs text-jade">
+            隐线
+          </span>
+        ) : choice.requirement ? (
+          <span className="rounded-full border border-cinnabar/45 bg-cinnabar/14 px-2 py-0.5 text-xs text-red-100 shadow-[0_0_14px_rgba(201,75,58,.16)]">
+            {unlocked ? "命钥已现" : `缺 ${choice.requirement.label}`}
           </span>
         ) : (
-          <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-xs text-slate-200">
-            普通
+          <span className="rounded-full border border-gold/24 bg-gold/10 px-2 py-0.5 text-xs text-parchment/78">
+            常路
           </span>
         )}
       </div>
-      <p className="mt-2 text-sm leading-6 text-slate-300">{choice.description}</p>
-      <p className="mt-3 text-xs text-parchment/48">选择后将进行一次命格判定，再揭示后果。</p>
+      <p className="mt-5 text-sm leading-7 text-parchment/76">{choice.description}</p>
     </button>
   );
 }

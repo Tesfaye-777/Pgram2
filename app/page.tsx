@@ -14,16 +14,20 @@ export default function Home() {
               命格修仙人生模拟器
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-parchment/78">
-              输入基础资料，开启一卷命册，抽取天赋词条与五维灵盘，再踏入 20
-              重人生劫数，用每一次抉择写出你的江湖修行路。
+              输入基础资料，开启一卷命册，抽取天赋词条与五维灵盘，再踏入二十重人生劫数，
+              用每一次抉择写出你的江湖修行路。
             </p>
           </div>
           <Disclaimer />
           <div className="grid gap-3 sm:grid-cols-3">
-            {["命格灵签", "五维灵盘", "人生劫数"].map((item) => (
-              <div key={item} className="rounded-md border border-gold/20 bg-parchment/6 p-4">
-                <p className="font-semibold text-jade">{item}</p>
-                <p className="mt-2 text-sm text-parchment/55">本地规则生成，后续可替换 AI API。</p>
+            {[
+              { title: "命格灵签", description: "一签落定，先见天赋与暗劫。" },
+              { title: "五维灵盘", description: <><span className="inline-block whitespace-nowrap text-[12px] leading-6 text-parchment/50">福缘、财势、心性、魄力、悟性，</span><br />尽入盘中。</> },
+              { title: "人生劫数", description: <>二十重关口，<br />皆待你亲手抉择。</> }
+            ].map((item) => (
+              <div key={item.title} className="rounded-md border border-gold/20 bg-parchment/6 p-4">
+                <p className="font-semibold text-jade">{item.title}</p>
+                <p className="mt-2 text-[15px] leading-7 text-parchment/55">{item.description}</p>
               </div>
             ))}
           </div>

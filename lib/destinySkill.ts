@@ -1,4 +1,5 @@
 import type { DestinyProfile, DestinyTrait, Stats, UserProfile } from "@/types";
+import { optimizedTraitCopy } from "@/lib/copyOptimizations";
 
 const traitPool: DestinyTrait[] = [
   {
@@ -181,6 +182,17 @@ const rarityWeight = {
   mythic: 5
 };
 
+const activeTraitPool: DestinyTrait[] = traitPool.map((trait) => {
+  const optimized = optimizedTraitCopy[trait.id];
+  return optimized
+    ? {
+        ...trait,
+        description: optimized.description,
+        impact: optimized.impact
+      }
+    : trait;
+});
+
 function hashInput(input: string) {
   let hash = 2166136261;
   for (let index = 0; index < input.length; index += 1) {
@@ -212,8 +224,8 @@ export function generateDestinyProfile(user: UserProfile): DestinyProfile {
   const selected = new Map<string, DestinyTrait>();
   const targetCount = 5 + (seededPick(seed, 6, 3) === 0 ? 1 : 0);
   const ominousCount = seededPick(seed, 7, 100) < 42 ? 1 : 0;
-  const ominousPool = traitPool.filter((trait) => trait.polarity === "ominous");
-  const mainPool = traitPool.filter((trait) => trait.polarity !== "ominous");
+  const ominousPool = activeTraitPool.filter((trait) => trait.polarity === "ominous");
+  const mainPool = activeTraitPool.filter((trait) => trait.polarity !== "ominous");
   let cursor = 0;
   while (selected.size < ominousCount) {
     const trait = ominousPool[seededPick(seed, cursor + 80, ominousPool.length)];
@@ -239,7 +251,7 @@ export function generateDestinyProfile(user: UserProfile): DestinyProfile {
   }
 
   const strongest = traits[0];
-  const archetypes = ["青山剑客", "观星术士", "云游散人", "藏锋侠士", "灵台策士"];
+  const archetypes = ["行路客", "持账人", "观局者", "藏锋人", "问命者"];
   const archetype = archetypes[seededPick(seed, 20, archetypes.length)];
 
   return {
@@ -248,27 +260,35 @@ export function generateDestinyProfile(user: UserProfile): DestinyProfile {
     traits,
     baseStats,
     archetype,
-    title: `${strongest.name}的${archetype}`,
+    title: `${user.name}入世命局`,
     initialEvaluation: buildEvaluation(user.name, baseStats, strongest),
     createdAt: new Date().toISOString()
   };
 }
 
 function buildEvaluation(name: string, stats: Stats, strongest: DestinyTrait) {
-  const topStat = Object.entries(stats).sort((a, b) => b[1] - a[1])[0][0];
-  const focus =
-    topStat === "luck"
-      ? "总能在混沌里遇到暗门"
-      : topStat === "wealth"
-        ? "对资源流向格外敏锐"
-        : topStat === "mind"
-          ? "内核稳定，越压越清醒"
-          : topStat === "courage"
-            ? "敢在无人下注处落子"
-            : "擅长看见选择背后的选择";
+  const sortedStats = Object.entries(stats).sort((a, b) => b[1] - a[1]) as Array<[keyof Stats, number]>;
+  const [topKey, topValue] = sortedStats[0];
+  const [lowKey, lowValue] = sortedStats[sortedStats.length - 1];
+  const topName = statReadingNames[topKey];
+  const lowName = statReadingNames[lowKey];
+  const polarity =
+    strongest.polarity === "ominous"
+      ? "主签带劫，早年容易因一处短板反复受阻，宜先守后攻。"
+      : strongest.polarity === "mixed"
+        ? "主签半吉半劫，得势时进得快，失衡时也容易付出代价。"
+        : "主签偏吉，遇事多有可借之势，但仍需靠抉择把局面坐实。";
 
-  return `${name}的初始命盘由「${strongest.name}」领衔，${focus}。这不是现实预言，而是一卷娱乐向江湖命册的开局参数。`;
+  return `${name}此盘以「${strongest.name}」为主签，五维中${topName}最旺，得 ${topValue} 分；${lowName}最弱，为 ${lowValue} 分。${polarity}开局宜重视${topName}所指之路，少在${lowName}不足处硬碰。`;
 }
+
+const statReadingNames: Record<keyof Stats, string> = {
+  luck: "福缘",
+  wealth: "财势",
+  mind: "心性",
+  courage: "魄力",
+  insight: "悟性"
+};
 
 export function hasTrait(profile: DestinyProfile, traitId: string) {
   return profile.traits.some((trait) => trait.id === traitId);

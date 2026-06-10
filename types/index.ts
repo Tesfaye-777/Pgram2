@@ -20,6 +20,27 @@ export type StatKey = "luck" | "wealth" | "mind" | "courage" | "insight";
 
 export type Stats = Record<StatKey, number>;
 
+export type LifeStatusKey = "reputation" | "assets" | "bonds";
+
+export type ChoiceRiskLevel = "safe" | "normal" | "risky" | "fate" | "heaven";
+
+export type ChoiceCheckRank = "greatSuccess" | "success" | "partialFail" | "fail" | "criticalFail";
+
+export type TraitEffectDisplay = {
+  traitName: string;
+  effectTitle: string;
+  effectDescription: string;
+  effectType:
+    | "bonus"
+    | "failure_grace"
+    | "rank_shift"
+    | "state_shift"
+    | "hidden_route"
+    | "pressure";
+  value?: number;
+  visible: boolean;
+};
+
 export type UserProfile = {
   name: string;
   birthDate: string;
@@ -57,10 +78,33 @@ export type LifeChoice = {
   id: string;
   label: string;
   description: string;
+  requiredAttribute?: StatKey;
+  difficulty?: number;
+  riskLevel?: ChoiceRiskLevel;
+  relatedStatus?: LifeStatusKey;
   effects: Partial<Stats>;
+  greatSuccessEffect?: Partial<Stats>;
+  successEffect?: Partial<Stats>;
+  partialFailEffect?: Partial<Stats>;
+  failEffect?: Partial<Stats>;
+  criticalFailEffect?: Partial<Stats>;
   stateEffects?: Partial<LifeState>;
+  greatSuccessStateEffect?: Partial<LifeState>;
+  successStateEffect?: Partial<LifeState>;
+  partialFailStateEffect?: Partial<LifeState>;
+  failStateEffect?: Partial<LifeState>;
+  criticalFailStateEffect?: Partial<LifeState>;
   requirement?: ChoiceRequirement;
   risk?: "low" | "medium" | "high";
+  traitInteractions?: Array<{
+    traitId?: string;
+    tag?: string;
+    checkBonus?: number;
+    failureGrace?: number;
+    label: string;
+  }>;
+  routeEffect?: string;
+  resultTexts?: Partial<Record<ChoiceCheckRank, string>>;
 };
 
 export type LifeScenario = {
@@ -94,11 +138,30 @@ export type ChoiceOutcome = {
   success: boolean;
   roll: number;
   modifier: number;
+  attributeBonus: number;
+  traitBonus: number;
+  statusBonus: number;
+  pressurePenalty: number;
+  sceneModifier: number;
+  situationalBonus: number;
   total: number;
   target: number;
+  finalScore: number;
+  targetScore: number;
+  margin: number;
+  difficulty: number;
+  riskLevel: ChoiceRiskLevel;
   keyStat: StatKey;
+  baseStat: number;
+  relatedStatus?: LifeStatusKey;
+  relatedStatusValue?: number;
+  rollEffectText?: string;
+  rank: ChoiceCheckRank;
+  rankLabel: string;
   effects: Partial<Stats>;
   stateEffects?: Partial<LifeState>;
+  triggeredTraitEffects: TraitEffectDisplay[];
+  routeEffect?: string;
   resultText: string;
 };
 

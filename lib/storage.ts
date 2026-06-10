@@ -22,7 +22,18 @@ export function saveSimulation(save: SimulationSave) {
 }
 
 export function loadSimulation(): SimulationSave | null {
-  return readJson<SimulationSave>(simulationKey);
+  const save = readJson<SimulationSave>(simulationKey);
+  if (!save) {
+    return null;
+  }
+
+  if (save.records.length === 0 && save.state.pressure === 10) {
+    const migrated = { ...save, state: { ...save.state, pressure: 0 } };
+    saveSimulation(migrated);
+    return migrated;
+  }
+
+  return save;
 }
 
 export function clearSimulation() {
