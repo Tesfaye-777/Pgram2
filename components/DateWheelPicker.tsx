@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type CalendarType = "solar" | "lunar";
 
@@ -61,7 +61,7 @@ export function DateWheelPicker({ year, month, day, calendarType, onChange }: Pr
   }
 
   return (
-    <div className="rounded-lg border border-gold/25 bg-ink/45 p-3">
+    <div className="rounded-lg border border-[#8c6a32]/28 bg-[#eadbb8]/30 p-3 shadow-[inset_0_0_18px_rgba(126,88,43,0.08)]">
       <div className="grid grid-cols-3 gap-2">
         <WheelColumn
           label="年"
@@ -90,7 +90,7 @@ export function DateWheelPicker({ year, month, day, calendarType, onChange }: Pr
           onChange={(value) => update({ day: value })}
         />
       </div>
-      <div className="mt-3 rounded-md border border-jade/20 bg-jade/8 py-2 text-center text-sm text-jade">
+      <div className="mt-3 rounded-md border border-[#8c6a32]/26 bg-[#f4e8c9]/42 py-2 text-center text-sm font-medium text-[#5a3519]">
         {calendarType === "lunar" ? "农历" : "新历"} {year} 年{" "}
         {calendarType === "lunar" ? lunarMonths[month - 1] : `${month} 月`}{" "}
         {calendarType === "lunar" ? lunarDays[safeDay - 1] : `${safeDay} 日`}
@@ -116,59 +116,164 @@ function WheelColumn({
   render: (value: number) => string;
   onChange: (value: number) => void;
 }) {
-  const touchStart = useRef<number | null>(null);
-  const visibleValues = [-1, 0, 1].map((offset) => displayValue(value, offset, min, max, cyclic));
+  const itemHeight = 40;
+  const repeatCount = cyclic ? 9 : 1;
+  const middleRepeat = Math.floor(repeatCount / 2);
+  const baseValues = useMemo(() => range(min, max), [min, max]);
+  const values = useMemo(
+    () => Array.from({ length: repeatCount }, () => baseValues).flat(),
+    [baseValues, repeatCount]
+  );
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const scrollEndTimer = useRef<number | null>(null);
+  const isUserScrolling = useRef(false);
+  const isPointerDown = useRef(false);
+  const dragStartY = useRef<number | null>(null);
+  const dragLastY = useRef<number | null>(null);
+  const hasDragged = useRef(false);
+  const [dragging, setDragging] = useState(false);
 
-  function shift(direction: number) {
-    onChange(moveValue(value, direction, min, max, cyclic));
+  const selectedIndex = cyclic
+    ? middleRepeat * baseValues.length + (value - min)
+    : Math.max(0, Math.min(baseValues.length - 1, value - min));
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller || isUserScrolling.current) {
+      return;
+    }
+    scroller.scrollTo({ top: selectedIndex * itemHeight, behavior: "auto" });
+  }, [selectedIndex]);
+
+  function settleWheel() {
+    const scroller = scrollerRef.current;
+    if (!scroller) {
+      return;
+    }
+    const index = Math.max(0, Math.min(values.length - 1, Math.round(scroller.scrollTop / itemHeight)));
+    const nextValue = values[index];
+    const nextIndex = cyclic ? middleRepeat * baseValues.length + (nextValue - min) : index;
+    if (nextValue !== value) {
+      onChange(nextValue);
+    }
+    scroller.scrollTo({ top: nextIndex * itemHeight, behavior: "smooth" });
+    isUserScrolling.current = false;
+  }
+
+  function chooseOption(option: number) {
+    const scroller = scrollerRef.current;
+    const nextIndex = cyclic ? middleRepeat * baseValues.length + (option - min) : option - min;
+    isUserScrolling.current = false;
+    onChange(option);
+    scroller?.scrollTo({ top: nextIndex * itemHeight, behavior: "smooth" });
+  }
+
+  function chooseFromPointer(clientY: number) {
+    const scroller = scrollerRef.current;
+    if (!scroller) {
+      return;
+    }
+    const rect = scroller.getBoundingClientRect();
+    const contentY = clientY - rect.top + scroller.scrollTop - 44;
+    const index = Math.max(0, Math.min(values.length - 1, Math.floor(contentY / itemHeight)));
+    chooseOption(values[index]);
   }
 
   return (
     <div>
-      <p className="mb-1 text-center text-xs text-parchment/55">{label}</p>
-      <div
-        className="relative overflow-hidden rounded-md border border-gold/20 bg-gradient-to-b from-ink/85 via-parchment/10 to-ink/85"
-        onWheel={(event) => {
-          event.preventDefault();
-          if (Math.abs(event.deltaY) > 2) {
-            shift(event.deltaY > 0 ? 1 : -1);
-          }
-        }}
-        onTouchStart={(event) => {
-          touchStart.current = event.touches[0]?.clientY ?? null;
-        }}
-        onTouchEnd={(event) => {
-          if (touchStart.current === null) {
-            return;
-          }
-          const delta = touchStart.current - (event.changedTouches[0]?.clientY ?? touchStart.current);
-          touchStart.current = null;
-          if (Math.abs(delta) > 18) {
-            shift(delta > 0 ? 1 : -1);
-          }
-        }}
-      >
-        <div className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-10 -translate-y-1/2 rounded-md border border-gold/35 bg-gold/10 shadow-gold" />
-        <div className="hide-scrollbar h-32 px-2 py-2">
-          {visibleValues.map((option, index) => {
-            const active = index === 1;
-            const distance = Math.abs(index - 1);
-
-            if (option === null) {
-              return <div key={`empty-${index}`} className="mb-1 h-8" />;
+      <p className="mb-1 text-center text-xs font-semibold tracking-[0.16em] text-[#6d4a20]">{label}</p>
+      <div className="date-wheel-frame relative overflow-hidden rounded-md border border-[#8c6a32]/28 bg-[#efe1bf]/58">
+        <div className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-10 -translate-y-1/2 rounded-md border border-[#a47a32]/45 bg-[#f8edcc]/62 shadow-[0_0_18px_rgba(176,128,42,0.24)]" />
+        <div
+          ref={scrollerRef}
+          className={`date-wheel-scroll hide-scrollbar h-32 cursor-grab touch-none select-none overflow-y-auto overscroll-contain px-2 active:cursor-grabbing ${
+            dragging ? "" : "snap-y snap-mandatory"
+          }`}
+          style={{ paddingTop: 44, paddingBottom: 44 }}
+          onScroll={() => {
+            isUserScrolling.current = true;
+            if (isPointerDown.current) {
+              if (scrollEndTimer.current) {
+                window.clearTimeout(scrollEndTimer.current);
+              }
+              return;
             }
-
+            if (scrollEndTimer.current) {
+              window.clearTimeout(scrollEndTimer.current);
+            }
+            scrollEndTimer.current = window.setTimeout(() => {
+              settleWheel();
+            }, 90);
+          }}
+          onPointerDown={(event) => {
+            dragStartY.current = event.clientY;
+            dragLastY.current = event.clientY;
+            hasDragged.current = false;
+            isPointerDown.current = true;
+            isUserScrolling.current = true;
+            setDragging(true);
+            if (scrollEndTimer.current) {
+              window.clearTimeout(scrollEndTimer.current);
+            }
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }}
+          onPointerMove={(event) => {
+            const scroller = scrollerRef.current;
+            if (!scroller || dragLastY.current === null) {
+              return;
+            }
+            const delta = dragLastY.current - event.clientY;
+            if (Math.abs((dragStartY.current ?? event.clientY) - event.clientY) > 3) {
+              hasDragged.current = true;
+            }
+            dragLastY.current = event.clientY;
+            scroller.scrollTop += delta;
+          }}
+          onPointerUp={(event) => {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+            isPointerDown.current = false;
+            dragStartY.current = null;
+            dragLastY.current = null;
+            setDragging(false);
+            if (!hasDragged.current) {
+              chooseFromPointer(event.clientY);
+              return;
+            }
+            window.setTimeout(() => {
+              settleWheel();
+              hasDragged.current = false;
+            }, 60);
+          }}
+          onPointerCancel={() => {
+            isPointerDown.current = false;
+            dragStartY.current = null;
+            dragLastY.current = null;
+            setDragging(false);
+            if (!hasDragged.current) {
+              return;
+            }
+            window.setTimeout(() => {
+              settleWheel();
+              hasDragged.current = false;
+            }, 60);
+          }}
+        >
+          {values.map((option, index) => {
+            const active = option === value;
             return (
               <button
                 key={`${option}-${index}`}
                 type="button"
-                onClick={() => onChange(option)}
-                className={`wheel-option relative z-20 mb-1 block h-8 w-full rounded text-center transition duration-300 ease-out ${
-                  active
-                    ? "wheel-option-active bg-gold/18 text-lg font-black text-yellow-50"
-                    : "text-sm text-parchment/55 hover:bg-parchment/8 hover:text-parchment"
+                onClick={(event) => {
+                  if (hasDragged.current) {
+                    event.preventDefault();
+                    return;
+                  }
+                  chooseOption(option);
+                }}
+                className={`block h-10 w-full snap-center rounded text-center text-base transition-colors duration-100 ${
+                  active ? "font-bold text-[#3b220e]" : "font-medium text-[#6b4b25]/58 hover:text-[#3b220e]/82"
                 }`}
-                style={{ opacity: active ? 1 : distance === 1 ? 0.72 : 0.42, transform: `scale(${active ? 1 : distance === 1 ? 0.94 : 0.88})` }}
               >
                 {render(option)}
               </button>
@@ -180,20 +285,8 @@ function WheelColumn({
   );
 }
 
-function moveValue(value: number, offset: number, min: number, max: number, cyclic: boolean) {
-  const range = max - min + 1;
-  if (!cyclic) {
-    return Math.max(min, Math.min(max, value + offset));
-  }
-  return ((value - min + offset + range * 10) % range) + min;
-}
-
-function displayValue(value: number, offset: number, min: number, max: number, cyclic: boolean) {
-  const next = value + offset;
-  if (!cyclic && (next < min || next > max)) {
-    return null;
-  }
-  return moveValue(value, offset, min, max, cyclic);
+function range(min: number, max: number) {
+  return Array.from({ length: max - min + 1 }, (_, index) => min + index);
 }
 
 function getMaxDay(calendarType: CalendarType, year: number, month: number) {

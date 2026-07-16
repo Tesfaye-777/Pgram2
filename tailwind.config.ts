@@ -25,6 +25,10 @@ const config: Config = {
       backgroundImage: {
         "xian-pattern":
           "radial-gradient(circle at 1px 1px, rgba(216,179,90,.16) 1px, transparent 0)"
+      },
+      fontFamily: {
+        podium: ['"FSP DEMO - PODIUM Sharp 4.11"', '"STKaiti"', '"KaiTi"', '"FangSong"', "serif"],
+        inter: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"]
       }
     }
   },

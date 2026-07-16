@@ -10,21 +10,16 @@ type Props = {
 export function ResultSummary({ ending }: Props) {
   return (
     <section className="xian-card scroll-glow rounded-lg p-5 md:p-7">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
           <p className="text-sm text-cinnabar">终局命册</p>
-          <h1 className="mt-2 text-3xl font-bold text-yellow-50 md:text-4xl">{ending.title}</h1>
-          <p className="mt-2 text-slate-300">最终命格评价：{ending.rating}</p>
+          <h1 className="mt-2 text-3xl font-bold leading-tight text-yellow-50 md:text-4xl">{ending.title}</h1>
+          <p className="mt-2 text-sm text-slate-300 md:text-base">最终命格评价：{ending.rating}</p>
         </div>
-        <div className="rounded-lg border border-yellow-300/40 bg-yellow-300/10 px-5 py-3 text-center shadow-gold">
-          <p className="text-xs text-yellow-100/80">RATING</p>
-          <p className="text-3xl font-black text-yellow-100">{ending.rating}</p>
+        <div className="shrink-0 rounded-lg border border-yellow-300/40 bg-yellow-300/10 px-3 py-2 text-center shadow-gold md:px-5 md:py-3">
+          <p className="text-[10px] text-yellow-100/80 md:text-xs">RATING</p>
+          <p className="text-2xl font-black leading-none text-yellow-100 md:text-3xl">{ending.rating}</p>
         </div>
-      </div>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <InfoBlock title="最强词条" value={ending.strongestTrait.name} />
-        <InfoBlock title="关键选择" value={ending.keyChoice?.choiceLabel ?? "无记录"} />
-        <InfoBlock title="触发场景" value={ending.keyChoice?.scenarioTitle ?? "终章"} />
       </div>
       <p className="mt-6 rounded-md border border-gold/18 bg-ink/36 p-4 leading-7 text-parchment/88">
         {ending.summary}
@@ -44,31 +39,36 @@ export function ResultSummary({ ending }: Props) {
   );
 }
 
-const statCardTone: Record<StatKey, { aura: string; bar: string; value: string }> = {
+const statCardTone: Record<StatKey, { aura: string; bar: string; value: string; border: string }> = {
   luck: {
     aura: "from-emerald-300/12",
     bar: "from-jade via-emerald-200 to-gold",
-    value: "text-jade"
+    value: "text-jade",
+    border: "border-jade/55"
   },
   wealth: {
     aura: "from-yellow-300/14",
     bar: "from-gold via-yellow-200 to-amber-500",
-    value: "text-yellow-100"
+    value: "text-yellow-100",
+    border: "border-gold/60"
   },
   mind: {
     aura: "from-sky-300/12",
     bar: "from-sky-200 via-jade to-cyan-400",
-    value: "text-cyan-100"
+    value: "text-cyan-100",
+    border: "border-cyan-200/45"
   },
   courage: {
     aura: "from-red-400/12",
     bar: "from-cinnabar via-orange-300 to-gold",
-    value: "text-orange-100"
+    value: "text-orange-100",
+    border: "border-cinnabar/50"
   },
   insight: {
     aura: "from-violet-300/12",
     bar: "from-violet-200 via-fuchsia-200 to-jade",
-    value: "text-violet-100"
+    value: "text-violet-100",
+    border: "border-violet-200/45"
   }
 };
 
@@ -87,7 +87,7 @@ function StatResultCard({
   const tone = statCardTone[statKey];
 
   return (
-    <div className={`rounded-lg border border-gold/16 bg-gradient-to-br ${tone.aura} to-ink/45 px-3 py-2.5 shadow-[inset_0_0_18px_rgba(216,179,90,0.04)]`}>
+    <div className={`rounded-lg border ${tone.border} bg-gradient-to-br ${tone.aura} to-ink/45 px-3 py-2.5 shadow-[inset_0_0_18px_rgba(216,179,90,0.04)]`}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold text-parchment/72">{label}</p>
         <p className={`font-mono text-xs font-bold ${deltaTone}`}>
@@ -104,15 +104,6 @@ function StatResultCard({
           style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
         />
       </div>
-    </div>
-  );
-}
-
-function InfoBlock({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-md border border-white/10 bg-white/6 p-4">
-      <p className="text-xs text-slate-400">{title}</p>
-      <p className="mt-2 font-semibold text-slate-50">{value}</p>
     </div>
   );
 }

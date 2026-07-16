@@ -253,11 +253,21 @@ function createFaceTexture(THREE: ThreeModule, glyph: string, primary: boolean) 
   ctx.arc(128, 128, primary ? 96 : 82, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.fillStyle = "#221006";
-  ctx.font = primary ? "900 102px serif" : "900 72px serif";
+  const glyphFont =
+    '"STKaiti", "KaiTi", "FangSong", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", serif';
+  ctx.font = primary ? `900 104px ${glyphFont}` : `900 74px ${glyphFont}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(255, 223, 142, .34)";
+  ctx.lineWidth = primary ? 5 : 3.5;
+  ctx.strokeText(glyph, 128, primary ? 132 : 128);
+  ctx.shadowColor = "rgba(0, 0, 0, .42)";
+  ctx.shadowBlur = primary ? 3 : 2;
+  ctx.shadowOffsetY = 1;
+  ctx.fillStyle = "#1e0c04";
   ctx.fillText(glyph, 128, primary ? 132 : 128);
+  ctx.shadowColor = "transparent";
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;

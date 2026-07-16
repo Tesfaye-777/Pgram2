@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "bun ./node_modules/next/dist/bin/next dev",
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/dev-next.ps1",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@types/three": "^0.184.1",
+    "gsap": "^3.15.0",
     "next": "15.3.6",
     "react": "19.2.7",
     "react-dom": "19.2.7",

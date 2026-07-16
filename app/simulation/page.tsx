@@ -30,6 +30,7 @@ type PendingOutcome = {
 export default function SimulationPage() {
   const [save, setSave] = useState<SimulationSave | null>(null);
   const [pendingOutcome, setPendingOutcome] = useState<PendingOutcome | null>(null);
+  const [mobileStateOpen, setMobileStateOpen] = useState(false);
 
   useEffect(() => {
     setSave(loadSimulation());
@@ -79,12 +80,13 @@ export default function SimulationPage() {
   return (
     <main className="ink-wash min-h-screen bg-xian-pattern bg-[length:26px_26px] px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
-        <Disclaimer />
         {ending ? (
           <>
             <ResultSummary ending={ending} />
             <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
-              <StatRadarChart stats={ending.finalStats} previousStats={save.destiny.baseStats} />
+              <div className="hidden lg:block">
+                <StatRadarChart stats={ending.finalStats} previousStats={save.destiny.baseStats} />
+              </div>
               <section className="xian-card rounded-lg p-5">
                 <h2 className="text-lg font-semibold text-jade">渡劫记录</h2>
                 <div className="mt-4 max-h-[520px] space-y-3 overflow-auto pr-1">
@@ -113,7 +115,32 @@ export default function SimulationPage() {
             {pendingOutcome ? (
               <OutcomeDialog pending={pendingOutcome} onContinue={confirmOutcome} />
             ) : null}
-            <aside className="space-y-6">
+            <button
+              type="button"
+              onClick={() => setMobileStateOpen(true)}
+              className="fixed right-3 top-1/2 z-40 grid size-14 -translate-y-1/2 place-items-center rounded-full border border-gold/55 bg-[#211609]/94 font-serif text-sm font-black text-yellow-50 shadow-[0_0_26px_rgba(216,179,90,0.38),inset_0_0_18px_rgba(216,179,90,0.12)] backdrop-blur transition hover:border-gold/80 hover:bg-gold/18 lg:hidden"
+            >
+              <span className="absolute inset-1 rounded-full border border-parchment/12" />
+              <span className="relative leading-none">灵盘</span>
+            </button>
+            {mobileStateOpen ? (
+              <div className="fixed inset-0 z-[90] bg-black/55 backdrop-blur-sm lg:hidden" onClick={() => setMobileStateOpen(false)}>
+                <aside
+                  className="absolute right-0 top-0 h-full w-[86vw] max-w-sm overflow-y-auto border-l border-gold/30 bg-[#140d07] p-4 shadow-gold"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setMobileStateOpen(false)}
+                    className="mb-4 w-full rounded-md border border-gold/28 bg-gold/10 px-3 py-2 text-sm text-yellow-50"
+                  >
+                    收起灵盘
+                  </button>
+                  <MobileStatsPanel save={save} />
+                </aside>
+              </div>
+            ) : null}
+            <aside className="hidden space-y-6 lg:block">
               <StatRadarChart stats={save.currentStats} previousStats={save.destiny.baseStats} />
               <section className="xian-card rounded-lg p-5">
                 <h2 className="text-lg font-semibold text-jade">入世状态</h2>
@@ -127,6 +154,7 @@ export default function SimulationPage() {
             </aside>
           </div>
         ) : null}
+        <Disclaimer />
       </div>
     </main>
   );
@@ -143,6 +171,7 @@ function OutcomeDialog({
   const [rolling, setRolling] = useState(true);
   const [shownRoll, setShownRoll] = useState(1);
   const [activeJudge, setActiveJudge] = useState<string | null>(null);
+  const [showRuleHelp, setShowRuleHelp] = useState(false);
   const rankTone = getRankTone(outcome.rank);
   const visibleEffects = outcome.triggeredTraitEffects.filter((effect) => effect.visible);
   const judgeDetails: Record<string, { title: string; description: string; rows: Array<[string, string | number]> }> = {
@@ -208,15 +237,46 @@ function OutcomeDialog({
   }, [choice.id, outcome.roll]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-      <section className="judgement-scroll xian-card max-h-[92vh] w-full max-w-3xl overflow-y-auto overflow-x-visible rounded-xl border-gold/45 p-4 shadow-gold md:p-5">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-3 backdrop-blur-sm md:px-4">
+      <section className="judgement-scroll xian-card max-h-[92vh] w-full max-w-3xl overflow-y-auto overflow-x-visible rounded-xl border-gold/45 p-3 shadow-gold md:p-5">
         <p className="text-sm text-cinnabar">命格判定</p>
-        <h2 className="mt-1 font-serif text-2xl font-black text-yellow-50 md:text-3xl">{choice.label}</h2>
-        <p className="mt-3 rounded-lg border border-gold/18 bg-gold/8 px-3 py-2 font-serif text-sm leading-6 text-parchment/72">
-          命骰定无常，属性定底气，词条定偏命，状态定处境，压力定劫数，风险定代价。
-        </p>
+        <div className="mt-1 flex items-start gap-2">
+          <h2 className="font-serif text-2xl font-black text-yellow-50 md:text-3xl">{choice.label}</h2>
+          <button
+            type="button"
+            onClick={() => setShowRuleHelp((value) => !value)}
+            aria-label="查看判定说明"
+            className={`mt-1 grid size-6 shrink-0 place-items-center rounded-full border text-xs font-black transition ${
+              showRuleHelp
+                ? "border-gold/70 bg-gold/16 text-yellow-50 shadow-gold"
+                : "border-gold/35 bg-ink/50 text-gold hover:border-gold/65 hover:bg-gold/12"
+            }`}
+          >
+            ?
+          </button>
+        </div>
+        {showRuleHelp ? (
+          <div className="mt-3 rounded-lg border border-gold/18 bg-gold/8 px-3 py-3 text-sm leading-7 text-parchment/72">
+            <p>判定先取你的关键五维作底，再看灵签是否应势、关系与资产是否帮得上忙。</p>
+            <p className="mt-1">命骰负责最后一分变数；压力越重，所行之路越难稳住。</p>
+          </div>
+        ) : null}
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 rounded-xl border border-gold/25 bg-ink/52 p-4 text-center md:p-5">
+          <p className="text-xs tracking-[0.32em] text-parchment/48">命骰落盘</p>
+          <AncientDice rolling={rolling} rollValue={shownRoll} size={150} />
+          <p className="mt-2 text-xs leading-5 text-parchment/58 md:text-sm md:leading-6">
+            命骰 {rolling ? "未定" : outcome.roll} + 属性 {outcome.attributeBonus} + 灵签 {outcome.traitBonus} + 人事 {outcome.statusBonus} + 临场 {outcome.situationalBonus} - 劫压 {outcome.pressurePenalty}
+          </p>
+          <p className="font-serif text-lg font-black text-yellow-50 md:text-xl">
+            最终命数：{rolling ? "未落盘" : outcome.finalScore}；此关所需：{outcome.targetScore}
+          </p>
+          {outcome.rollEffectText && !rolling ? (
+            <p className="mt-2 text-sm text-gold">{outcome.rollEffectText}</p>
+          ) : null}
+        </div>
+
+        <div className="mt-3 grid grid-cols-4 gap-2">
           <JudgeBlock
             label="此关所需"
             value={outcome.targetScore}
@@ -250,20 +310,6 @@ function OutcomeDialog({
             <JudgeDetailPanel detail={judgeDetails[activeJudge]} />
           )
         ) : null}
-
-        <div className="mt-4 rounded-xl border border-gold/25 bg-ink/52 p-4 text-center">
-          <p className="text-xs tracking-[0.32em] text-parchment/48">命骰落盘</p>
-          <AncientDice rolling={rolling} rollValue={shownRoll} size={132} />
-          <p className="mt-3 text-sm leading-6 text-parchment/66">
-            命骰 {rolling ? "未定" : outcome.roll} + 属性 {outcome.attributeBonus} + 灵签 {outcome.traitBonus} + 人事 {outcome.statusBonus} + 临场 {outcome.situationalBonus} - 劫压 {outcome.pressurePenalty}
-          </p>
-          <p className="font-serif text-lg font-black text-yellow-50">
-            最终命数：{rolling ? "未落盘" : outcome.finalScore}；此关所需：{outcome.targetScore}
-          </p>
-          {outcome.rollEffectText && !rolling ? (
-            <p className="mt-2 text-sm text-gold">{outcome.rollEffectText}</p>
-          ) : null}
-        </div>
 
         {!rolling ? (
           <>
@@ -337,24 +383,24 @@ function JudgeBlock({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border p-3 text-center transition ${
+      className={`rounded-lg border px-1.5 py-2 text-center transition md:p-3 ${
         active
           ? "border-gold/55 bg-gold/14 shadow-[0_0_22px_rgba(202,157,75,0.18)]"
           : "border-gold/18 bg-ink/42 hover:border-gold/35 hover:bg-gold/8"
       }`}
     >
-      <p className="flex items-center justify-center gap-1.5 text-xs text-parchment/52">
-        <span>{label}</span>
+      <p className="flex items-center justify-center gap-1 text-[10px] leading-4 text-parchment/52 md:gap-1.5 md:text-xs">
+        <span className="truncate">{label}</span>
         <span
           aria-hidden="true"
-          className={`grid size-4 place-items-center rounded-full border text-[10px] leading-none transition ${
+          className={`grid size-3.5 shrink-0 place-items-center rounded-full border text-[9px] leading-none transition md:size-4 md:text-[10px] ${
             active ? "border-gold/70 text-gold" : "border-gold/35 text-gold/70"
           }`}
         >
           ?
         </span>
       </p>
-      <p className="mt-1 font-mono text-xl font-bold text-yellow-50">{value}</p>
+      <p className="mt-1 font-mono text-lg font-bold text-yellow-50 md:text-xl">{value}</p>
     </button>
   );
 }
@@ -576,6 +622,23 @@ function StatePill({ label, value }: { label: string; value: number }) {
     <div className="rounded-md border border-white/10 bg-white/6 p-3">
       <p className="text-slate-400">{label}</p>
       <p className="mt-1 font-mono text-xl text-jade">{value}</p>
+    </div>
+  );
+}
+
+function MobileStatsPanel({ save }: { save: SimulationSave }) {
+  return (
+    <div className="space-y-4">
+      <StatRadarChart stats={save.currentStats} previousStats={save.destiny.baseStats} />
+      <section className="xian-card rounded-lg p-4">
+        <h2 className="text-lg font-semibold text-jade">入世状态</h2>
+        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+          <StatePill label="声望" value={save.state.reputation} />
+          <StatePill label="资产" value={save.state.assets} />
+          <StatePill label="关系" value={save.state.bonds} />
+          <StatePill label="压力" value={save.state.pressure} />
+        </div>
+      </section>
     </div>
   );
 }

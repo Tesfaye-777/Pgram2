@@ -8,6 +8,7 @@ build/
 *.tsbuildinfo
 ~$*.xlsx
 dev-server.*
+DestinyLauncher.exe
 bun.lock
 .env
 .env.*

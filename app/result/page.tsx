@@ -15,6 +15,7 @@ export default function ResultPage() {
   const [showBirthInfo, setShowBirthInfo] = useState(false);
   const [isBirthInfoClosing, setIsBirthInfoClosing] = useState(false);
   const [selectedTraitId, setSelectedTraitId] = useState<string | null>(null);
+  const [mobileTraitOpen, setMobileTraitOpen] = useState(false);
 
   useEffect(() => {
     const destiny = loadDestiny();
@@ -60,7 +61,6 @@ export default function ResultPage() {
   return (
     <main className="ink-wash min-h-screen bg-xian-pattern bg-[length:26px_26px] px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
-        <Disclaimer />
         <section className="xian-card scroll-glow rounded-lg p-5 md:p-7">
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
@@ -113,15 +113,34 @@ export default function ResultPage() {
                   key={trait.id}
                   trait={trait}
                   selected={trait.id === selectedTrait.id}
-                  onSelect={(nextTrait) => setSelectedTraitId(nextTrait.id)}
+                  onSelect={(nextTrait) => {
+                    setSelectedTraitId(nextTrait.id);
+                    setMobileTraitOpen(true);
+                  }}
                 />
               ))}
             </div>
           </div>
-          <div className="mt-5">
+          <div className="mt-5 hidden md:block">
             <TraitDetailPanel trait={selectedTrait} />
           </div>
         </section>
+        {mobileTraitOpen ? (
+          <div className="fixed inset-0 z-[110] flex items-end bg-black/64 px-3 pb-3 backdrop-blur-sm md:hidden">
+            <div className="relative max-h-[82vh] w-full overflow-y-auto rounded-xl border border-gold/40 bg-[#170f08] p-3 pt-7 shadow-gold">
+              <button
+                type="button"
+                onClick={() => setMobileTraitOpen(false)}
+                aria-label="收起详批"
+                className="absolute right-3 top-3 z-10 grid size-9 place-items-center rounded-full border border-gold/35 bg-ink/82 font-serif text-lg text-yellow-50 shadow-[0_0_16px_rgba(216,179,90,0.18)] transition hover:border-gold/70 hover:bg-gold/16"
+              >
+                ×
+              </button>
+              <TraitDetailPanel trait={selectedTrait} />
+            </div>
+          </div>
+        ) : null}
+        <Disclaimer />
       </div>
     </main>
   );

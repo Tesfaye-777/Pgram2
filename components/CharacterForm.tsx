@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DateWheelPicker } from "@/components/DateWheelPicker";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { birthHourOptions } from "@/lib/constants";
 import { generateDestinyProfile } from "@/lib/destinySkill";
 import { clearSimulation, saveDestiny } from "@/lib/storage";
@@ -11,14 +12,9 @@ import type { BirthHour, Gender } from "@/types";
 type Step = "name" | "date" | "hour" | "gender";
 type CalendarType = "solar" | "lunar";
 
-const steps: Array<{ id: Step; label: string }> = [
-  { id: "name", label: "留名" },
-  { id: "date", label: "择日" },
-  { id: "hour", label: "定时" },
-  { id: "gender", label: "定造" }
-];
+const steps: Step[] = ["name", "date", "hour", "gender"];
 
-export function CharacterForm() {
+export function CharacterForm({ active = true }: { active?: boolean }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
@@ -27,11 +23,16 @@ export function CharacterForm() {
   const [birthTime, setBirthTime] = useState<BirthHour>("chen");
   const [gender, setGender] = useState<Gender | "">("");
   const [error, setError] = useState("");
+  const [isNameSealing, setIsNameSealing] = useState(false);
 
-  const stepIndex = steps.findIndex((item) => item.id === step);
-  const panelHeightClass = step === "name" || step === "gender" ? "min-h-[330px]" : "min-h-[430px]";
+  const stepIndex = steps.findIndex((item) => item === step);
+  const panelHeightClass = step === "name" || step === "gender" ? "min-h-[300px] md:min-h-[330px]" : "min-h-[390px] md:min-h-[430px]";
 
   function goNext() {
+    if (isNameSealing) {
+      return;
+    }
+
     if (step === "name" && !name.trim()) {
       setError("请先留下姓名，命册才能开卷。");
       return;
@@ -44,12 +45,21 @@ export function CharacterForm() {
 
     setError("");
 
+    if (step === "name") {
+      setIsNameSealing(true);
+      window.setTimeout(() => {
+        setIsNameSealing(false);
+        setStep("date");
+      }, 420);
+      return;
+    }
+
     if (step === "gender") {
       submitProfile();
       return;
     }
 
-    setStep(steps[stepIndex + 1].id);
+    setStep(steps[stepIndex + 1]);
   }
 
   function goBack() {
@@ -57,7 +67,7 @@ export function CharacterForm() {
       return;
     }
     setError("");
-    setStep(steps[stepIndex - 1].id);
+    setStep(steps[stepIndex - 1]);
   }
 
   function submitProfile() {
@@ -76,66 +86,72 @@ export function CharacterForm() {
   }
 
   return (
-    <section className="xian-card scroll-glow rounded-lg p-5 md:p-6">
-      <div className="mb-5 flex items-center justify-between gap-2">
-        {steps.map((item, index) => (
-          <div key={item.id} className="flex flex-1 items-center gap-2">
-            <div
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${
-                index <= stepIndex
-                  ? "border-gold/70 bg-gold/18 text-yellow-50 shadow-gold"
-                  : "border-parchment/18 bg-ink/35 text-parchment/45"
+    <ScrollReveal active={active}>
+        <div className="mb-4 flex items-center justify-center gap-3">
+          {steps.map((item, index) => (
+            <span
+              key={item}
+              aria-current={index === stepIndex ? "step" : undefined}
+              className={`block transition-all duration-300 ${
+                index === stepIndex
+                  ? "h-3 w-3 rounded-full bg-[#6b3a18] shadow-[0_0_12px_rgba(105,58,24,0.35)]"
+                  : "h-1 w-10 rounded-full bg-[#8d6b39]/60"
               }`}
-            >
-              {index + 1}
-            </div>
-            <span className={index <= stepIndex ? "text-xs text-jade" : "text-xs text-parchment/40"}>
-              {item.label}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className={`${panelHeightClass} rounded-lg border border-gold/18 bg-ink/24 p-4 transition-[min-height] duration-300`}>
-        {step === "name" ? (
-          <NamePanel name={name} setName={setName} clearError={() => setError("")} hasError={Boolean(error)} />
-        ) : null}
-        {step === "date" ? (
-          <DatePanel
-            calendarType={calendarType}
-            setCalendarType={setCalendarType}
-            birthDate={birthDate}
-            setBirthDate={setBirthDate}
-          />
-        ) : null}
-        {step === "hour" ? <HourPanel birthTime={birthTime} setBirthTime={setBirthTime} /> : null}
-        {step === "gender" ? <GenderPanel gender={gender} setGender={setGender} /> : null}
-      </div>
-
-      {error ? (
-        <div className="mt-4 rounded-md border border-cinnabar/45 bg-cinnabar/12 px-4 py-3 text-sm text-red-100">
-          {error}
+            />
+          ))}
         </div>
-      ) : null}
 
-      <div className="mt-5 flex gap-3">
-        <button
-          type="button"
-          onClick={goBack}
-          disabled={stepIndex === 0}
-          className="rounded-md border border-gold/25 px-4 py-3 text-sm text-parchment/70 transition hover:bg-parchment/8 disabled:cursor-not-allowed disabled:opacity-35"
+        <div
+          key={step}
+          className={`${panelHeightClass} scroll-form-step flex-1 px-1 transition-[min-height] duration-300`}
         >
-          上一步
-        </button>
-        <button
-          type="button"
-          onClick={goNext}
-          className="flex-1 rounded-md border border-gold/70 bg-gold/16 px-5 py-3 font-semibold text-yellow-50 shadow-gold transition hover:bg-gold/24"
-        >
-          {step === "gender" ? "开启命册" : "下一步"}
-        </button>
-      </div>
-    </section>
+          {step === "name" ? (
+            <NamePanel
+              name={name}
+              setName={setName}
+              clearError={() => setError("")}
+              hasError={Boolean(error)}
+              isSealing={isNameSealing}
+            />
+          ) : null}
+          {step === "date" ? (
+            <DatePanel
+              calendarType={calendarType}
+              setCalendarType={setCalendarType}
+              birthDate={birthDate}
+              setBirthDate={setBirthDate}
+            />
+          ) : null}
+          {step === "hour" ? <HourPanel birthTime={birthTime} setBirthTime={setBirthTime} /> : null}
+          {step === "gender" ? <GenderPanel gender={gender} setGender={setGender} /> : null}
+        </div>
+
+        {error ? (
+          <div className="mt-3 rounded-md border border-[#8a3b24]/45 bg-[#8a3b24]/10 px-4 py-2.5 text-sm text-[#5f2316]">
+            {error}
+          </div>
+        ) : null}
+
+        <div className="mt-5 flex gap-3">
+          {stepIndex > 0 ? (
+            <button
+              type="button"
+              onClick={goBack}
+              className="scroll-secondary-button rounded-md px-4 py-3 text-sm font-bold tracking-[0.06em] transition"
+            >
+              上一步
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={goNext}
+            disabled={isNameSealing}
+            className="scroll-primary-button flex-1 rounded-md px-5 py-3 text-base font-black tracking-[0.08em] transition disabled:cursor-wait disabled:opacity-90"
+          >
+            {step === "gender" ? "生成命书" : "下一步"}
+          </button>
+        </div>
+    </ScrollReveal>
   );
 }
 
@@ -143,17 +159,19 @@ function NamePanel({
   name,
   setName,
   clearError,
-  hasError
+  hasError,
+  isSealing
 }: {
   name: string;
   setName: (value: string) => void;
   clearError: () => void;
   hasError: boolean;
+  isSealing: boolean;
 }) {
   return (
     <div className="space-y-5">
       <PanelTitle title="第一步：留名入册" description="一名落纸，便入命卷；此后江湖万劫，皆以此名留痕。" />
-      <div className="name-scroll-panel relative overflow-hidden rounded-xl border border-gold/22 bg-ink/38 px-5 py-6">
+      <div className={`name-scroll-panel relative overflow-hidden rounded-xl border border-gold/22 bg-ink/38 px-4 py-5 md:px-5 md:py-6 ${isSealing ? "name-scroll-panel-sealing" : ""}`}>
         <div className="name-seal pointer-events-none absolute right-5 top-5 flex h-16 w-16 items-center justify-center rounded-full text-center text-[10px] font-black leading-4 text-red-100">
           <span className="block">命</span>
           <span className="block">册</span>
@@ -166,17 +184,17 @@ function NamePanel({
               clearError();
             }}
             placeholder="请题真名"
-            className={`w-full border-0 border-b bg-transparent px-1 py-3 font-serif text-3xl font-black tracking-[0.16em] text-yellow-50 outline-none transition placeholder:text-parchment/26 focus:border-jade md:text-[2rem] ${
+            className={`w-full border-0 border-b bg-transparent px-1 py-3 font-serif text-[1.55rem] font-semibold tracking-[0.12em] text-yellow-50 outline-none transition placeholder:text-parchment/32 focus:border-[#96622d] focus:shadow-[0_2px_0_rgba(150,98,45,0.24)] md:text-[1.85rem] ${
               hasError ? "border-cinnabar/70" : "border-gold/30"
             }`}
           />
         </label>
-        <div className="mt-6 grid gap-3 font-serif text-[15px] leading-7 tracking-[0.03em] text-parchment/78">
+        <div className="mt-6 grid gap-3 font-serif text-[13px] font-medium leading-7 tracking-[0.02em] text-parchment/78 md:text-[14px] md:tracking-[0.03em]">
           <div className="name-oath-line">
-            <p className="whitespace-nowrap">落笔之后，灵签有归处，劫数有来路。</p>
+            <p className="whitespace-normal md:whitespace-nowrap">落笔之后，灵签有归处，劫数有来路。</p>
           </div>
           <div className="name-oath-line">
-            <p className="whitespace-nowrap">此名将随你入世、破局、回望一生。</p>
+            <p className="whitespace-normal md:whitespace-nowrap">此名将随你入世、破局、回望一生。</p>
           </div>
         </div>
       </div>
@@ -256,8 +274,8 @@ function HourPanel({
                 onClick={() => setBirthTime(option.value)}
                 className={`absolute z-30 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-xs font-bold transition ${
                   active
-                    ? "border-gold bg-[#3a2810] text-yellow-50 shadow-gold"
-                    : "border-parchment/70 bg-[#1b130a] text-parchment hover:border-jade hover:bg-[#1f2016] hover:text-jade"
+                    ? "border-[#9c6f22] bg-[#f2dfad] text-[#3b220e] shadow-[0_0_18px_rgba(176,128,42,0.42)]"
+                    : "border-[#8c6a32]/55 bg-[#efe2c4]/82 text-[#5b3a19] hover:border-[#9c6f22] hover:bg-[#f7ebc7] hover:text-[#2f1b0b]"
                 }`}
                 style={{ left: `${x}%`, top: `${y}%` }}
               >
@@ -266,8 +284,8 @@ function HourPanel({
             );
           })}
         </div>
-        <div className="rounded-lg border border-gold/22 bg-ink/38 p-4 text-center">
-          <p className="text-sm text-parchment/55">当前点定</p>
+        <div className="rounded-lg border border-[#8c6a32]/28 bg-[#eadbb8]/30 p-4 text-center shadow-[inset_0_0_18px_rgba(126,88,43,0.08)]">
+          <p className="text-sm font-medium text-[#6d4a20]/76">当前点定</p>
           <div key={birthTime} className="hour-text-fade">
             <p className="mt-2 font-serif text-4xl font-black tracking-[0.18em] text-yellow-50">{selected.label}</p>
             <p className="mt-2 font-mono text-lg font-semibold tracking-[0.08em] text-gold">{selected.range}</p>
@@ -311,9 +329,8 @@ function GenderPanel({
 function PanelTitle({ title, description }: { title: string; description?: string }) {
   return (
     <div>
-      <p className="text-sm text-cinnabar">开卷问命</p>
-      <h2 className="mt-1 text-2xl font-black text-yellow-50">{title}</h2>
-      {description ? <p className="mt-2 text-sm leading-6 text-parchment/62">{description}</p> : null}
+      <h2 className="font-serif text-[1.55rem] font-black leading-tight tracking-[0.03em] text-yellow-50 md:text-[1.85rem]">{title}</h2>
+      {description ? <p className="mt-3 text-[0.92rem] font-medium leading-7 tracking-[0.02em] text-parchment/62">{description}</p> : null}
     </div>
   );
 }
@@ -362,15 +379,15 @@ function GenderCard({
       onClick={onClick}
       className={`gender-card relative overflow-hidden rounded-xl border p-5 text-center transition duration-300 ${
         active
-          ? "gender-card-active border-gold/75 bg-gold/16 shadow-gold"
-          : "border-gold/22 bg-ink/38 hover:border-jade/45 hover:bg-parchment/5"
+          ? "gender-card-active border-[#b48a3d]/75 bg-[#ead39b]/30 shadow-[0_0_26px_rgba(176,128,42,0.22)]"
+          : "border-[#8c6a32]/28 bg-[#eadbb8]/24 hover:border-[#b48a3d]/52 hover:bg-[#f0dfb8]/34"
       }`}
     >
       <div className="mx-auto mb-4 flex h-32 w-24 items-end justify-center">
         <GenderFigure type={type} active={active} />
       </div>
-      <p className="text-2xl font-black text-yellow-50">{label}</p>
-      <p className="mt-1 text-sm text-parchment/58">{description}</p>
+      <p className="font-serif text-[1.55rem] font-black tracking-[0.08em] text-[#3b220e]">{label}</p>
+      <p className="mt-1 text-sm font-medium tracking-[0.08em] text-[#6d4a20]/72">{description}</p>
     </button>
   );
 }
@@ -419,7 +436,7 @@ function GenderFigure({ type, active }: { type: "male" | "female"; active: boole
       <path d="M62 164 H98 M51 178 H109" stroke={main} strokeWidth="4" strokeLinecap="round" opacity="0.7" />
       <circle cx="64" cy="43" r="2" fill="#24160e" />
       <circle cx="96" cy="43" r="2" fill="#24160e" />
-      <path d="M72 53 C77 57 83 57 88 53" stroke="#8b5a32" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M73 53 C78 55 83 55 87 53" stroke="#8b5a32" strokeOpacity="0.38" strokeWidth="1.4" strokeLinecap="round" fill="none" />
     </svg>
   );
 }

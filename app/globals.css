@@ -1,3 +1,6 @@
+@import url("https://db.onlinewebfonts.com/c/8b75d9dcff6a48c35a46656192adf019?family=FSP+DEMO+-+PODIUM+Sharp+4.11");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -64,6 +67,560 @@ select {
     radial-gradient(ellipse at 20% 20%, rgba(255, 247, 223, 0.22), transparent 18rem),
     radial-gradient(ellipse at 72% 26%, rgba(0, 0, 0, 0.35), transparent 20rem),
     radial-gradient(ellipse at 48% 92%, rgba(141, 230, 200, 0.12), transparent 22rem);
+}
+
+.hero-pan-image {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 112vh;
+  width: auto;
+  max-width: none;
+  transform: translate3d(0, -50%, 0);
+  transition: transform 1.25s cubic-bezier(0.72, 0, 0.22, 1);
+  will-change: transform;
+}
+
+.hero-pan-image.is-started {
+  transform: translate3d(-42vw, -50%, 0);
+}
+
+@media (max-width: 767px) {
+  .hero-pan-image {
+    height: 104vh;
+    transform: translate3d(-10vw, -50%, 0);
+  }
+
+  .hero-pan-image.is-started {
+    transform: translate3d(-64vw, -50%, 0);
+  }
+}
+
+
+.scroll-root {
+  position: relative;
+  --scroll-width: min(780px, 92vw, 73vh);
+  --paper-width-ratio: 0.76;
+  --paper-open-height: clamp(600px, 70vh, 760px);
+  --top-rod-height: clamp(62px, calc(var(--scroll-width) * 0.064), 78px);
+  --bottom-rod-height: clamp(60px, calc(var(--scroll-width) * 0.061), 74px);
+  --paper-top: calc(var(--top-rod-height) - 2px);
+  --joint-overlap: 4px;
+  --closed-center: calc(var(--paper-top) + var(--paper-open-height) * 0.5);
+  width: var(--scroll-width);
+  height: calc(var(--paper-top) + var(--paper-open-height) + var(--bottom-rod-height) - var(--joint-overlap));
+  isolation: isolate;
+  opacity: 0;
+  transform: translateY(-0.6rem);
+  filter: saturate(0.92) brightness(0.94);
+  transition: opacity 360ms ease, transform 520ms ease, filter 520ms ease;
+}
+
+.scroll-root:has(.scroll-paper-viewport) {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-root-shadow {
+  position: absolute;
+  left: 50%;
+  top: var(--top-rod-height);
+  z-index: 0;
+  width: calc(var(--scroll-width) * var(--paper-width-ratio));
+  height: calc(var(--paper-open-height) * var(--scroll-progress));
+  border-radius: 30px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.34), transparent 68%);
+  filter: blur(22px);
+  opacity: calc(0.18 + var(--scroll-progress) * 0.48);
+  transform: translateX(-50%) translateY(20px);
+  pointer-events: none;
+}
+
+.scroll-top-rod,
+.scroll-bottom-rod {
+  position: absolute;
+  left: 50%;
+  z-index: 5;
+  width: var(--scroll-width);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.scroll-top-rod {
+  top: 0;
+  height: var(--top-rod-height);
+  filter: drop-shadow(0 14px 18px rgba(42, 26, 10, 0.28));
+  transform: translateX(-50%) translateY(calc((var(--closed-center) - var(--top-rod-height) * 0.5) * (1 - var(--scroll-progress))));
+}
+
+.scroll-bottom-rod {
+  top: var(--paper-top);
+  height: var(--bottom-rod-height);
+  filter: drop-shadow(0 -8px 12px rgba(42, 26, 10, 0.18)) drop-shadow(0 15px 22px rgba(0, 0, 0, 0.32));
+  transform: translateX(-50%) translateY(calc(((var(--closed-center) - var(--bottom-rod-height) * 0.5) - var(--paper-top)) * (1 - var(--scroll-progress)) + (var(--paper-open-height) - var(--joint-overlap)) * var(--scroll-progress)));
+}
+
+.scroll-rod-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: fill;
+  object-position: center;
+}
+
+.scroll-paper-viewport {
+  position: absolute;
+  left: 50%;
+  top: var(--paper-top);
+  z-index: 2;
+  width: calc(var(--scroll-width) * var(--paper-width-ratio));
+  height: calc(var(--paper-open-height) * var(--scroll-progress));
+  overflow: hidden;
+  transform: translateX(-50%) translateY(calc((var(--closed-center) - var(--paper-top)) * (1 - var(--scroll-progress))));
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, calc(0.14 + var(--scroll-progress) * 0.22)));
+}
+
+.scroll-paper-viewport::before,
+.scroll-paper-viewport::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 18px;
+  pointer-events: none;
+  opacity: var(--scroll-progress);
+}
+
+.scroll-paper-viewport::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(77, 45, 18, 0.18), transparent);
+}
+
+.scroll-paper-viewport::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(77, 45, 18, 0.15), transparent);
+}
+
+.scroll-paper-body {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  height: var(--paper-open-height);
+  width: 100%;
+  overflow: hidden;
+}
+
+.scroll-paper-image {
+  display: block;
+  width: 100%;
+  height: var(--paper-open-height);
+  max-width: none;
+  object-fit: fill;
+  object-position: top center;
+}
+
+.scroll-content {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(58px, 7vh, 76px) clamp(42px, 8vw, 72px) clamp(86px, 10vh, 108px);
+  opacity: var(--content-progress);
+  transform: translateY(calc((1 - var(--content-progress)) * 12px));
+  filter: blur(calc((1 - var(--content-progress)) * 2px));
+  pointer-events: auto;
+}
+
+.scroll-content > * {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.scroll-root[style*="--content-progress: 1"] .scroll-content > *,
+.scroll-content > * {
+  animation: scroll-content-rise 620ms ease-out forwards;
+}
+
+.scroll-content > *:nth-child(1) {
+  animation-delay: 720ms;
+}
+
+.scroll-content > *:nth-child(2) {
+  animation-delay: 790ms;
+}
+
+.scroll-content > *:nth-child(3) {
+  animation-delay: 860ms;
+}
+
+.scroll-content > *:nth-child(4) {
+  animation-delay: 930ms;
+}
+
+.scroll-content > *,
+.scroll-form-step > * {
+  width: 100%;
+}
+
+.scroll-form-step {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  scrollbar-width: none;
+  animation: scroll-step-fade 260ms ease-out;
+}
+
+.scroll-form-step::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-content .text-yellow-50,
+.scroll-content .text-parchment,
+.scroll-content .text-parchment\/70,
+.scroll-content .text-parchment\/78 {
+  color: #3f2815;
+}
+
+.scroll-content .text-parchment\/62,
+.scroll-content .text-parchment\/58,
+.scroll-content .text-parchment\/55,
+.scroll-content .text-parchment\/45,
+.scroll-content .text-parchment\/40 {
+  color: rgba(63, 40, 21, 0.68);
+}
+
+.scroll-content .text-cinnabar,
+.scroll-content .text-red-100 {
+  color: #8a3b24;
+}
+
+.scroll-content .text-jade,
+.scroll-content .text-gold {
+  color: #6a4a20;
+}
+
+.scroll-content .name-scroll-panel,
+.scroll-content .rounded-lg.bg-ink\/24,
+.scroll-content .bg-ink\/38,
+.scroll-content .bg-ink\/35 {
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 252, 235, 0.58), transparent 12rem),
+    rgba(231, 207, 156, 0.2);
+  border-color: rgba(117, 77, 35, 0.28);
+  box-shadow: inset 0 0 22px rgba(126, 88, 43, 0.08);
+}
+
+.scroll-content input {
+  color: #2d1b0d;
+}
+
+.scroll-content input::placeholder {
+  color: rgba(63, 40, 21, 0.38);
+}
+
+.scroll-content button {
+  text-shadow: none;
+}
+
+.scroll-primary-button {
+  border: 1px solid rgba(126, 88, 43, 0.72);
+  background:
+    linear-gradient(180deg, rgba(174, 129, 59, 0.92), rgba(104, 63, 26, 0.94)),
+    #8a5a24;
+  color: #fff8df !important;
+  box-shadow:
+    0 8px 20px rgba(96, 58, 24, 0.2),
+    inset 0 1px 0 rgba(255, 248, 218, 0.34),
+    inset 0 -10px 18px rgba(44, 22, 8, 0.16);
+}
+
+.scroll-primary-button:hover {
+  background:
+    linear-gradient(180deg, rgba(190, 146, 70, 0.98), rgba(120, 73, 30, 0.98)),
+    #9c672b;
+  color: #fff9df !important;
+}
+
+.scroll-secondary-button {
+  border: 1px solid rgba(124, 90, 44, 0.72);
+  background: rgba(226, 197, 137, 0.62);
+  color: #321c0b !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 249, 225, 0.18);
+}
+
+.scroll-secondary-button:hover {
+  background: rgba(235, 208, 154, 0.8);
+}
+
+.scroll-content .bg-radial-clock {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 22%, rgba(107, 58, 24, 0.13) 22% 23%, transparent 23% 36%, rgba(84, 52, 24, 0.08) 36% 37%, transparent 37%),
+    radial-gradient(circle at center, rgba(107, 58, 24, 0.22) 0 2px, transparent 3px),
+    radial-gradient(circle at center, rgba(255, 250, 232, 0.36), transparent 52%),
+    conic-gradient(from -90deg, rgba(117, 77, 35, 0.2), rgba(216, 179, 90, 0.08), rgba(117, 77, 35, 0.2));
+}
+
+.date-wheel-frame::before,
+.date-wheel-frame::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  z-index: 8;
+  height: 2.35rem;
+  pointer-events: none;
+}
+
+.date-wheel-frame::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(239, 225, 191, 0.98), rgba(239, 225, 191, 0));
+}
+
+.date-wheel-frame::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(239, 225, 191, 0.98), rgba(239, 225, 191, 0));
+}
+
+@media (max-width: 767px) {
+  .scroll-root {
+    --scroll-width: min(90vw, 54vh, 500px);
+    --paper-width-ratio: 0.76;
+    --paper-open-height: clamp(660px, 76vh, 720px);
+    --top-rod-height: clamp(44px, calc(var(--scroll-width) * 0.055), 52px);
+    --bottom-rod-height: clamp(44px, calc(var(--scroll-width) * 0.055), 52px);
+    transform: translateY(-0.7rem);
+  }
+
+  .scroll-content {
+    padding: 46px 22px 78px;
+  }
+
+  .scroll-form-step {
+    max-height: none !important;
+  }
+}
+
+/* The vertical scroll shares one coordinate system. Paper is revealed by a mask, never scaleY. */
+.vertical-scroll {
+  --scroll-width: min(700px, 48vw);
+  --scroll-open-height: clamp(590px, 72vh, 720px);
+  /* The source rod includes a small hanging strip of paper. Keep the source
+     at its native aspect ratio, then crop that strip inside the rod viewport. */
+  --rod-source-height: calc(var(--scroll-width) * 0.084635);
+  --rod-height: calc(var(--rod-source-height) * 0.84);
+  --paper-width: calc(var(--scroll-width) * 0.785);
+  --rod-paper-overlap: 14px;
+  position: relative;
+  width: var(--scroll-width);
+  height: calc(var(--scroll-open-height) + var(--rod-height) * 2 - var(--rod-paper-overlap) * 2);
+  isolation: isolate;
+}
+
+.vertical-scroll__shadow {
+  position: absolute;
+  z-index: 0;
+  inset: calc(var(--rod-height) * 0.5) 8% 0;
+  border-radius: 36px;
+  background: radial-gradient(ellipse at center, rgba(38, 23, 10, 0.32), transparent 70%);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+.vertical-scroll__rod {
+  position: absolute;
+  left: 50%;
+  z-index: 4;
+  width: var(--scroll-width);
+  height: var(--rod-height);
+  overflow: hidden;
+  pointer-events: none;
+  transform: translate3d(-50%, 0, 0);
+  filter: drop-shadow(0 9px 12px rgba(43, 27, 11, 0.26));
+}
+
+.vertical-scroll__rod--top {
+  top: 0;
+}
+
+.vertical-scroll__rod--bottom {
+  top: 0;
+  filter: drop-shadow(0 10px 15px rgba(32, 20, 9, 0.28));
+}
+
+.vertical-scroll__rod-image {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: 100%;
+  height: var(--rod-source-height);
+  max-width: none;
+  object-fit: fill;
+}
+
+/* The bottom rod is clipped from the opposite side, so its wood axis remains
+   anchored to the paper edge while the top rod loses its dangling paper tail. */
+.vertical-scroll__rod--bottom .vertical-scroll__rod-image {
+  top: auto;
+  bottom: 0;
+}
+
+.vertical-scroll__paper-mask {
+  position: absolute;
+  left: 50%;
+  z-index: 2;
+  width: var(--paper-width);
+  height: 0;
+  overflow: hidden;
+  transform: translate3d(-50%, 0, 0);
+  filter: drop-shadow(0 16px 24px rgba(41, 26, 10, 0.2));
+}
+
+.vertical-scroll__paper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  width: 100%;
+  height: var(--scroll-open-height);
+  overflow: hidden;
+  background: #efe4ca;
+  will-change: transform;
+}
+
+.vertical-scroll__paper-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: fill;
+}
+
+.vertical-scroll__paper::before,
+.vertical-scroll__paper::after {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  left: 0;
+  height: 22px;
+  content: "";
+  pointer-events: none;
+}
+
+.vertical-scroll__paper::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(76, 46, 20, 0.15), transparent);
+}
+
+.vertical-scroll__paper::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(76, 46, 20, 0.14), transparent);
+}
+
+.vertical-scroll__content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: var(--scroll-open-height);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(58px, 7vh, 74px) clamp(34px, 4vw, 56px) clamp(76px, 9vh, 96px);
+  will-change: opacity, transform, filter;
+}
+
+.vertical-scroll__content > *,
+.vertical-scroll__content .scroll-form-step > * {
+  width: 100%;
+}
+
+.vertical-scroll__content .scroll-form-step {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  scrollbar-width: none;
+  animation: scroll-step-fade 260ms ease-out;
+}
+
+.vertical-scroll__content .text-yellow-50,
+.vertical-scroll__content .text-parchment,
+.vertical-scroll__content .text-parchment\/70,
+.vertical-scroll__content .text-parchment\/78 {
+  color: #3f2815;
+}
+
+.vertical-scroll__content .text-parchment\/62,
+.vertical-scroll__content .text-parchment\/58,
+.vertical-scroll__content .text-parchment\/55,
+.vertical-scroll__content .text-parchment\/45,
+.vertical-scroll__content .text-parchment\/40 {
+  color: rgba(63, 40, 21, 0.68);
+}
+
+.vertical-scroll__content .text-cinnabar,
+.vertical-scroll__content .text-red-100 {
+  color: #8a3b24;
+}
+
+.vertical-scroll__content .text-jade,
+.vertical-scroll__content .text-gold {
+  color: #6a4a20;
+}
+
+.vertical-scroll__content .name-scroll-panel,
+.vertical-scroll__content .rounded-lg.bg-ink\/24,
+.vertical-scroll__content .bg-ink\/38,
+.vertical-scroll__content .bg-ink\/35 {
+  background: rgba(246, 235, 207, 0.34);
+  border-color: rgba(117, 77, 35, 0.28);
+  box-shadow: inset 0 0 22px rgba(126, 88, 43, 0.08);
+}
+
+.vertical-scroll__content input {
+  color: #2d1b0d;
+}
+
+.vertical-scroll__content input::placeholder {
+  color: rgba(63, 40, 21, 0.38);
+}
+
+.vertical-scroll__content button {
+  text-shadow: none;
+}
+
+.vertical-scroll__content .bg-radial-clock {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 22%, rgba(107, 58, 24, 0.13) 22% 23%, transparent 23% 36%, rgba(84, 52, 24, 0.08) 36% 37%, transparent 37%),
+    radial-gradient(circle at center, rgba(107, 58, 24, 0.22) 0 2px, transparent 3px),
+    radial-gradient(circle at center, rgba(255, 250, 232, 0.36), transparent 52%),
+    conic-gradient(from -90deg, rgba(117, 77, 35, 0.2), rgba(216, 179, 90, 0.08), rgba(117, 77, 35, 0.2));
+}
+
+@media (max-width: 767px) {
+  .vertical-scroll {
+    --scroll-width: min(92vw, 520px);
+    --scroll-open-height: clamp(620px, 78vh, 710px);
+    --paper-width: calc(var(--scroll-width) * 0.785);
+    --rod-paper-overlap: 12px;
+  }
+
+  .vertical-scroll__content {
+    padding: 48px 22px 70px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vertical-scroll__paper,
+  .vertical-scroll__content,
+  .vertical-scroll__rod {
+    will-change: auto;
+  }
 }
 
 .trait-card {
@@ -199,6 +756,39 @@ select {
 
 .name-scroll-panel::after {
   right: 0.75rem;
+}
+
+.name-scroll-panel-sealing {
+  animation: name-panel-seal 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  border-color: rgba(139, 79, 28, 0.58) !important;
+  box-shadow: inset 0 0 28px rgba(142, 88, 35, 0.2), 0 0 24px rgba(171, 111, 41, 0.2);
+}
+
+.name-scroll-panel-sealing::before {
+  animation: name-panel-ink 420ms ease-out both;
+}
+
+.name-scroll-panel-sealing .name-seal {
+  animation: name-seal-stamp 420ms cubic-bezier(0.18, 0.88, 0.3, 1.2) both;
+}
+
+@keyframes name-panel-seal {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.985); }
+  62% { transform: scale(1.018); }
+  100% { transform: scale(1); }
+}
+
+@keyframes name-panel-ink {
+  0% { opacity: 0.36; }
+  42% { opacity: 0.86; }
+  100% { opacity: 0.36; }
+}
+
+@keyframes name-seal-stamp {
+  0% { opacity: 0.42; transform: rotate(8deg) scale(0.78); }
+  62% { opacity: 1; transform: rotate(8deg) scale(1.1); }
+  100% { opacity: 1; transform: rotate(8deg) scale(1); }
 }
 
 .name-seal {
@@ -558,7 +1148,7 @@ select {
     inset 0 0 11px rgba(255, 238, 176, 0.24),
     0 0 0 1px rgba(255, 223, 142, 0.26);
   color: #2a1308;
-  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-family: "STKaiti", "KaiTi", "FangSong", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", ui-serif, serif;
   font-weight: 900;
   text-shadow: 0 1px rgba(255, 225, 160, 0.18);
 }
@@ -732,7 +1322,7 @@ select {
     radial-gradient(circle at 35% 24%, rgba(255, 236, 177, 0.7), transparent 42%),
     linear-gradient(145deg, rgba(221, 151, 73, 0.96), rgba(88, 38, 18, 0.96));
   color: #271006;
-  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-family: "STKaiti", "KaiTi", "FangSong", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", ui-serif, serif;
   font-weight: 900;
   box-shadow: inset 0 0 10px rgba(255, 231, 166, 0.22), 0 0 0 1px rgba(255, 231, 166, 0.22);
 }
@@ -868,6 +1458,113 @@ select {
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes scroll-step-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scroll-paper-open {
+  0% {
+    opacity: 0;
+    clip-path: inset(49% 0 49% 0);
+    filter: blur(2px) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.12));
+  }
+  18% {
+    opacity: 0.72;
+    clip-path: inset(39% 0 39% 0);
+  }
+  46% {
+    opacity: 0.9;
+    clip-path: inset(21% 0 21% 0);
+  }
+  72% {
+    opacity: 0.94;
+    clip-path: inset(7% 0 7% 0);
+    filter: blur(0.5px) drop-shadow(0 18px 34px rgba(0, 0, 0, 0.32));
+  }
+  100% {
+    opacity: 0.94;
+    clip-path: inset(0 0 0 0);
+    filter: blur(0) drop-shadow(0 26px 46px rgba(0, 0, 0, 0.46));
+  }
+}
+
+@keyframes scroll-top-open {
+  0% {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateX(-50%) translateY(calc(var(--scroll-closed-center) - var(--top-rod-height) * 0.5));
+  }
+  14% {
+    opacity: 1;
+    filter: blur(1.4px);
+  }
+  62% {
+    filter: blur(0.4px);
+    transform: translateX(-50%) translateY(calc((var(--scroll-closed-center) - var(--top-rod-height) * 0.5) * 0.14));
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes scroll-bottom-open {
+  0% {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateX(-50%) translateY(calc(var(--scroll-closed-center) - var(--paper-top) - var(--paper-open-height) + var(--bottom-overlap) - var(--bottom-rod-visible-height) * 0.5));
+  }
+  14% {
+    opacity: 1;
+    filter: blur(1.4px);
+  }
+  62% {
+    filter: blur(0.4px);
+    transform: translateX(-50%) translateY(calc((var(--scroll-closed-center) - var(--paper-top) - var(--paper-open-height) + var(--bottom-overlap) - var(--bottom-rod-visible-height) * 0.5) * 0.14));
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes scroll-paper-sheen {
+  0% {
+    opacity: 0;
+    transform: translateY(-42%);
+  }
+  18% {
+    opacity: 0;
+  }
+  52% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(64%);
+  }
+}
+
+@keyframes scroll-content-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -1061,5 +1758,80 @@ select {
   52% {
     opacity: 0.78;
     transform: translateX(-50%) scaleX(1.12);
+  }
+}
+
+@layer utilities {
+  .font-podium {
+    font-family: "FSP DEMO - PODIUM Sharp 4.11", "STKaiti", "KaiTi", "FangSong", serif;
+  }
+
+  .font-inter {
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-up,
+  .animate-fade-up-delay-1,
+  .animate-fade-up-delay-2,
+  .animate-fade-up-delay-3,
+  .animate-fade-up-delay-4 {
+    opacity: 0;
+    animation: fade-up 0.8s ease-out forwards;
+  }
+
+  .animate-fade-up-delay-1 {
+    animation-delay: 0.2s;
+  }
+
+  .animate-fade-up-delay-2 {
+    animation-delay: 0.4s;
+  }
+
+  .animate-fade-up-delay-3 {
+    animation-delay: 0.6s;
+  }
+
+  .animate-fade-up-delay-4 {
+    animation-delay: 0.8s;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.7s ease-out forwards;
+  }
+
+  .animate-fade-in-delay {
+    opacity: 0;
+    animation: fade-in 0.7s ease-out 0.25s forwards;
   }
 }
